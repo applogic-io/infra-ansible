@@ -21,6 +21,7 @@
     - name: Ensure Nexus group exists
       group:
         name: "nexus"
+        # docker container runs as gid 200 (see docker hub page)
         gid: 200
         state: present
       become: yes
@@ -28,6 +29,7 @@
       user:
         name: "nexus"
         group: "nexus"
+        # docker container runs as uid 200 (see docker hub page)
         uid: 200
         shell: "/bin/bash"
         state: present
