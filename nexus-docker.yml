@@ -1,0 +1,53 @@
+---
+- name: Install Nexus as docker container
+  hosts: aws_build_servers
+  tasks:
+    - name: Install docker engine
+      yum:
+        name: docker
+        state: present
+      become: yes
+    - name: Ensure Docker is started and enabled at boot.
+      service:
+        name: docker
+        state: started
+        enabled: yes
+      become: yes
+    - name: Install docker-py
+      pip:
+        name: docker-py
+        state: present
+      become: yes
+    - name: Ensure Nexus group exists
+      group:
+        name: "nexus"
+        gid: 200
+        state: present
+      become: yes
+    - name: Ensure Nexus user exists
+      user:
+        name: "nexus"
+        group: "nexus"
+        uid: 200
+        shell: "/bin/bash"
+        state: present
+      become: yes
+    - name: Create data directory
+      file:
+        path: /var/dockerized/nexus/data
+        state: directory
+        owner: nexus
+        group: nexus
+      become: yes
+    - name: Start Nexus docker container
+      docker_container:
+        name: nexus
+        image: sonatype/nexus3:3.10.0
+        volumes:
+          - /var/dockerized/nexus/data:/nexus-data 
+        published_ports:
+          - 8082:8081
+          - 5001:5001
+        restart_policy: always
+        state: started
+      become: yes
